@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Simple AppConfig Management</title>
+    <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f2f2f2;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    h2 {
+      margin-top: 30px;
+      margin-bottom: 10px;
+    }
+
+    form {
+      margin-top: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      width: 100%;
+      padding: 5px;
+      margin-bottom: 10px;
+    }
+
+    button {
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    li {
+      margin-bottom: 5px;
+      background-color: #fff;
+      padding: 8px;
+      border-radius: 4px;
+    }
+
+    li:hover {
+      background-color: #f9f9f9;
+    }
+  </style>
+</head>
+</head>
+<body>
+  <h1>AppConfig Management</h1>
+
+  <h2>AppConfigs List</h2>
+  <ul id="appConfigsList">
+    <!-- appConfigs will be added here dynamically -->
+  </ul>
+
+  <h2>Add AppConfig</h2>
+  <form id="addappConfigForm">
+    <label for="name">appName:</label>
+    <input type="text" id="appName" required>
+    <label for="name">appPath:</label>
+    <input type="text" id="appPath" required>
+    <label for="name">appOwner:</label>
+    <input type="text" id="appOwner" required>
+    <label for="updatedValidity">isValid:</label> 
+    <input type="checkbox" id="updatedValidityCreation"><br><br>
+    <button type="submit">Add AppConfig</button>
+  </form>
+
+  <h2>Update AppConfig</h2>
+  <form id="updateappConfigForm">
+    <label for="appConfigId">appConfig ID:</label>
+    <input type="number" id="appConfigId" required>
+    <label for="updatedOwner">appOwner:</label>
+    <input type="text" id="updatedOwner" required>
+    <label for="updatedValidity">isValid:</label> 
+    <input type="checkbox" id="updatedValidity"><br><br>
+    <button type="submit">Update AppConfig</button>
+  </form>
+
+  <h2>Delete AppConfig</h2>
+  <form id="deleteappConfigForm">
+    <label for="appConfigIdToDelete">appConfig ID:</label>
+    <input type="number" id="appConfigIdToDelete" required>
+    <button type="submit">Delete AppConfig</button>
+  </form>
+
+  <script>
+    const appConfigsList = document.getElementById('appConfigsList');
+    const addappConfigForm = document.getElementById('addappConfigForm');
+    const updateappConfigForm = document.getElementById('updateappConfigForm');
+    const deleteappConfigForm = document.getElementById('deleteappConfigForm');
+
+    // Function to fetch and display all appConfigs
+    function fetchappConfigs() {
+      fetch('http://localhost:3000/appConfigs')
+        .then(response => response.json())
+        .then(appConfigs => {
+          appConfigsList.innerHTML = appConfigs.map(appConfig => `<li>${appConfig.id}:&nbsp;${appConfig.appName} <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; appPath:&nbsp;${appConfig.appData.appPath} <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; appOwner:&nbsp;${appConfig.appData.appOwner} <br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; isValid:&nbsp;${appConfig.appData.isValid}</li>`).join('');
+        })
+        .catch(error => console.error('Error fetching appConfigs:', error));
+    }
+
+    // Fetch and display appConfigs on page load
+    fetchappConfigs();
+
+    // Add event listener to handle form submission for adding a new appConfig
+    addappConfigForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      
+      const appConfigId = document.getElementById('appConfigId').value;
+      const appName = document.getElementById('appName').value;
+      const appPath = document.getElementById('appPath').value;
+      const appOwner = document.getElementById('appOwner').value;
+      const isValid = document.getElementById('updatedValidityCreation').checked;
+      const appConfigData = { appName: appName,appData:{appPath: appPath, appOwner: appOwner, isValid: Boolean(isValid)} };
+
+      fetch('http://localhost:3000/appConfigs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(appConfigData),
+      })
+        .then(response => response.json())
+        .then(newappConfig => {
+          alert(`New appConfig added with ID: ${newappConfig.id}`);
+          fetchappConfigs(); // Update the displayed appConfigs after adding a new one
+        })
+        .catch(error => console.error('Error adding appConfig:', error));
+    });
+
+    // Add event listener to handle form submission for updating an existing appConfig
+    updateappConfigForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      const appConfigId = document.getElementById('appConfigId').value;
+      const updatedOwner = document.getElementById('updatedOwner').value;
+      const isValid = document.getElementById('updatedValidity').checked;
+      const appConfigData = { appData:{appOwner: updatedOwner, isValid: Boolean(isValid)} };
+
+      fetch(`http://localhost:3000/appConfigs/${appConfigId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(appConfigData),
+      })
+        .then(response => {
+          if (!response.ok) {
+            // If the response status code is not in the 200-299 range, throw an error
+            alert(`Couldn't update resource`);
+          }
+          else{
+            alert(`appConfig with ID ${appConfigId} updated`);
+            fetchappConfigs(); // Update the displayed appConfigs after updating an existing one
+          }
+          return response.json();
+        })
+        .catch(error => console.error('Error updating appConfig:', error));
+    });
+
+    // Add event listener to handle form submission for deleting a appConfig
+    deleteappConfigForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+
+      const appConfigIdToDelete = document.getElementById('appConfigIdToDelete').value;
+
+      fetch(`http://localhost:3000/appConfigs/${appConfigIdToDelete}`, {
+        method: 'DELETE',
+      })
+        .then(response => response.json())
+        .then(message => {
+          alert(message.message);
+          fetchappConfigs(); // Update the displayed appConfigs after deleting one
+        })
+        .catch(error => console.error('Error deleting appConfig:', error));
+    });
+  </script>
+</body>
+</html>

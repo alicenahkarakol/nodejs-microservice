@@ -1,0 +1,1 @@
+[{"id":1,"appName":"appOne","appData":{"appPath":"/appOne","appOwner":"ownerOne","isValid":true}},{"id":2,"appName":"appTwo","appData":{"appPath":"/appTwo","appOwner":"ownerTwo","isValid":false}},{"id":3,"appName":"appThree","appData":{"appPath":"/appThree","appOwner":"ownerThree","isValid":true}}]
